@@ -7,6 +7,7 @@ import {
     HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 const Sidescroll = ({ images, speed = "1" }) => {
     let cls = `flex animate-sidescroll w-full h-full`;
@@ -127,9 +128,11 @@ const Sidescroll = ({ images, speed = "1" }) => {
                                                 .substr(0, 1)}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <h3 className="scroll-m-20 text-normal md:text-lg font-semibold tracking-tight">
-                                        @{card.user.metadata.full_name}
-                                    </h3>
+                                    <Link href={"/u/" + card.user.id}>
+                                        <h3 className="scroll-m-20 text-normal md:text-lg font-semibold tracking-tight">
+                                            @{card.user.metadata.full_name}
+                                        </h3>
+                                    </Link>
                                 </div>
                                 <ul className="my-6 ml-6 list [&>li]:mt-2">
                                     <li>

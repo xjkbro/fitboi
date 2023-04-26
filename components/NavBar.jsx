@@ -16,6 +16,7 @@ export default function NavBar({ user, setUser }) {
             if (data.user) setUser(data.user);
         }
         getUser();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function signout() {
