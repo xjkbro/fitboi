@@ -20,9 +20,10 @@ import { useFormik } from "formik";
 import { useSupabase } from "./providers/supabase-provider";
 import { useRouter } from "next/navigation";
 
-export default function UploadDialog({ user, setUser }) {
+export default function UploadDialog({ user, setUser, setImages }) {
     const { supabase } = useSupabase();
     const router = useRouter();
+    const [open, setOpen] = useState(false);
     // const [user, setUser] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     // const uploadedImg = useRef<HTMLInputElement>(null);
@@ -44,6 +45,11 @@ export default function UploadDialog({ user, setUser }) {
             if (data.user) setUser(data.user);
         }
         getUser();
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Space") {
+                setOpen(true);
+            }
+        });
     }, []);
     async function signInWithGoogle(e) {
         e.preventDefault();
@@ -70,7 +76,32 @@ export default function UploadDialog({ user, setUser }) {
                     .from("fits")
                     .upload(`${data.id}.png`, selectedFile);
             }
+            const { data: imgs } = await supabase
+                .from("fits")
+                .select(
+                    `
+                    id,
+                    user (
+                        id,
+                         metadata
+                    ),
+                    info
+                `
+                )
+                // .eq("verified", true)
+                .limit(20);
+            if (imgs) setImages(imgs);
+            // setImages();
+
+            formik.setFieldValue("handle", "");
+            formik.setFieldValue("top", "");
+            formik.setFieldValue("bottom", "");
+            formik.setFieldValue("hat", "");
+            formik.setFieldValue("outerwear", "");
+            formik.setFieldValue("shoes", "");
+            setSelectedFile(null);
         }
+        setOpen(false);
     }
     return (
         <div className="w-full mx-auto">
@@ -82,7 +113,7 @@ export default function UploadDialog({ user, setUser }) {
                     </AlertDescription>
                 </div>
                 <div>
-                    <Dialog>
+                    <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
                             <Button variant="outline">
                                 <svg
@@ -101,7 +132,7 @@ export default function UploadDialog({ user, setUser }) {
                                 </svg>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
+                        <DialogContent className="max-w-[425px] md:max-w-[625px]">
                             <form onSubmit={formik.handleSubmit}>
                                 <DialogHeader>
                                     <DialogTitle>Upload</DialogTitle>
@@ -127,14 +158,14 @@ export default function UploadDialog({ user, setUser }) {
                                                     e.target.files[0]
                                                 );
                                             }}
-                                            required
-                                            className="col-span-3 file:text-white"
+                                            // required
+                                            className="col-span-3 file:bg-white file:rounded-sm file:mr-2"
                                         />
                                     </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
+                                    <div className="grid grid-cols-8 items-center gap-4">
                                         <Label
                                             htmlFor="handle"
-                                            className="text-right"
+                                            className="text-right col-span-2"
                                         >
                                             Handle
                                         </Label>
@@ -144,7 +175,7 @@ export default function UploadDialog({ user, setUser }) {
                                             {...formik.getFieldProps("handle")}
                                         /> */}
                                         {user ? (
-                                            <span className="flex col-span-3 items-center gap-3 text-sm">
+                                            <span className="flex col-span-6 items-center gap-3 text-sm">
                                                 <Avatar>
                                                     <AvatarImage
                                                         src={
@@ -161,15 +192,25 @@ export default function UploadDialog({ user, setUser }) {
                                                 {user.user_metadata.full_name}
                                             </span>
                                         ) : (
-                                            <Button
-                                                className="flex col-span-3 items-center gap-3 text-sm"
-                                                onClick={(e) =>
-                                                    signInWithGoogle(e)
-                                                }
-                                            >
-                                                {/* <Mail className="mr-2 h-4 w-4" />{" "} */}
-                                                Sign In with Google
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    className="flex col-span-6 items-center gap-3 text-sm"
+                                                    onClick={(e) =>
+                                                        signInWithGoogle(e)
+                                                    }
+                                                >
+                                                    {/* <Mail className="mr-2 h-4 w-4" />{" "} */}
+                                                    Sign In with Google
+                                                </Button>
+                                                {/* <Button
+                                                    className="flex col-span-3 items-center gap-3 text-sm"
+                                                    onClick={(e) =>
+                                                        signInWithGoogle(e)
+                                                    }
+                                                >
+                                                    Sign In with Twitter
+                                                </Button> */}
+                                            </>
                                         )}
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">

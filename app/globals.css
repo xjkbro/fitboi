@@ -79,8 +79,8 @@
         font-feature-settings: "rlig" 1, "calt" 1;
     }
 }
-/* 
-@keyframes swipe {
+
+/* @keyframes swipe {
     0% {
         transform: translate(0);
     }
@@ -88,8 +88,8 @@
     100% {
         transform: translate(-100%);
     }
-}
-
+} */
+/* 
 section {
     display: flex;
     animation: swipe var(--speed) linear infinite backwards;
