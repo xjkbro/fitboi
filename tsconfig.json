@@ -29,7 +29,8 @@
         "**/*.tsx",
         ".next/types/**/*.ts",
         "app/page.jsx",
-        "components/NavBar.jsx"
+        "components/NavBar.jsx",
+        "components/UploadDialog.jsx"
     ],
     "exclude": ["node_modules"]
 }

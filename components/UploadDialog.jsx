@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,27 +14,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // import { createClient } from "@supabase/supabase-js";
 import { useFormik } from "formik";
+import { useSupabase } from "./providers/supabase-provider";
+import { useRouter } from "next/navigation";
 
-// Create a single supabase client for interacting with your database
-type FormValue = {
-    handle: string;
-    top: string;
-    bottom: string;
-    hat: string;
-    outerwear: string;
-    shoes: string;
-};
-
-export default function UploadDialog({ supabase }: { supabase: any }) {
-    // const supabase = createClient(
-    //     process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    //     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-    // );
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+export default function UploadDialog({ user, setUser }) {
+    const { supabase } = useSupabase();
+    const router = useRouter();
+    // const [user, setUser] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
     // const uploadedImg = useRef<HTMLInputElement>(null);
+    // console.log(user);
     const formik = useFormik({
         initialValues: {
             handle: "",
@@ -44,18 +36,31 @@ export default function UploadDialog({ supabase }: { supabase: any }) {
             outerwear: "",
             shoes: "",
         },
-        // onSubmit: (values) => {
-        //     alert(JSON.stringify(values, null, 2));
-        //     console.log(uploadedImg);
-        // },
         onSubmit: handleSubmit,
     });
-    async function handleSubmit(values: FormValue) {
-        if (selectedFile != null) {
+    useEffect(() => {
+        async function getUser() {
+            const { data } = await supabase.auth.getUser();
+            if (data.user) setUser(data.user);
+        }
+        getUser();
+    }, []);
+    async function signInWithGoogle(e) {
+        e.preventDefault();
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+        });
+        setUser(user);
+        router.refresh();
+        router.replace("/");
+    }
+
+    async function handleSubmit(values) {
+        if (user != null && selectedFile != null) {
             // Add entry
             const { data } = await supabase
                 .from("fits")
-                .insert({ handle: values.handle, info: values })
+                .insert({ user: user.id, info: values })
                 .select()
                 .single();
             // console.log(data);
@@ -69,7 +74,7 @@ export default function UploadDialog({ supabase }: { supabase: any }) {
     }
     return (
         <div className="w-full mx-auto">
-            <Alert className="w-1/2 mx-auto fixed bottom-12 z-50 translate-x-1/2 opacity-70 flex justify-between items-center">
+            <Alert className="w-full md:w-1/2 mx-auto fixed bottom-12 z-50 md:translate-x-1/2 opacity-70 flex justify-between items-center">
                 <div>
                     <AlertTitle>Want to upload?</AlertTitle>
                     <AlertDescription>
@@ -116,12 +121,10 @@ export default function UploadDialog({ supabase }: { supabase: any }) {
                                         <Input
                                             id="image"
                                             type="file"
-                                            onChange={(
-                                                e: React.ChangeEvent<HTMLInputElement>
-                                            ) => {
+                                            onChange={(e) => {
                                                 if (!e.target.files) return;
                                                 setSelectedFile(
-                                                    e.target.files[0]!
+                                                    e.target.files[0]
                                                 );
                                             }}
                                             required
@@ -135,11 +138,39 @@ export default function UploadDialog({ supabase }: { supabase: any }) {
                                         >
                                             Handle
                                         </Label>
-                                        <Input
+                                        {/* <Input
                                             id="handle"
                                             className="col-span-3"
                                             {...formik.getFieldProps("handle")}
-                                        />
+                                        /> */}
+                                        {user ? (
+                                            <span className="flex col-span-3 items-center gap-3 text-sm">
+                                                <Avatar>
+                                                    <AvatarImage
+                                                        src={
+                                                            user.user_metadata
+                                                                .avatar_url
+                                                        }
+                                                    />
+                                                    <AvatarFallback>
+                                                        {user.user_metadata.full_name
+                                                            .toUpperCase()
+                                                            .substr(0, 1)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                {user.user_metadata.full_name}
+                                            </span>
+                                        ) : (
+                                            <Button
+                                                className="flex col-span-3 items-center gap-3 text-sm"
+                                                onClick={(e) =>
+                                                    signInWithGoogle(e)
+                                                }
+                                            >
+                                                {/* <Mail className="mr-2 h-4 w-4" />{" "} */}
+                                                Sign In with Google
+                                            </Button>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label
