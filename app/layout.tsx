@@ -1,9 +1,10 @@
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import SupabaseProvider from "@/components/providers/supabase-provider";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "700"] });
-import NavBar from "@/components/NavBar";
+// import NavBar from "@/components/NavBar";
 
 export const metadata = {
     title: "fitboi",
@@ -22,6 +23,7 @@ export default function RootLayout({
                     {/* <NavBar /> */}
                     {children}
                 </SupabaseProvider>
+                <Analytics />
             </body>
         </html>
     );
